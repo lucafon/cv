@@ -213,72 +213,19 @@ show(p)
 
     <div class="bk-root">
         <a href="https://bokeh.pydata.org" target="_blank" class="bk-logo bk-logo-small bk-logo-notebook"></a>
-        <span id="43bd35f9-a216-4ed1-9401-2a33a5968bc7">Loading BokehJS ...</span>
+        <span id="938958ea-868b-4a47-9098-411dd527a9a7">Loading BokehJS ...</span>
     </div>
 
 
 
 
 
-    ---------------------------------------------------------------------------
 
-    FileNotFoundError                         Traceback (most recent call last)
-
-    <ipython-input-3-bb3d346944ed> in <module>()
-          6 output_notebook()
-          7 
-    ----> 8 job_skills = pd.read_csv('job_skills.csv', sep=';')
-          9 source = ColumnDataSource(job_skills)
-         10 
+<div class="bk-root">
+    <div class="bk-plotdiv" id="7f774ce8-a1a4-405f-9cf3-be055ca76cbf"></div>
+</div>
 
 
-    /anaconda3/lib/python3.6/site-packages/pandas/io/parsers.py in parser_f(filepath_or_buffer, sep, delimiter, header, names, index_col, usecols, squeeze, prefix, mangle_dupe_cols, dtype, engine, converters, true_values, false_values, skipinitialspace, skiprows, nrows, na_values, keep_default_na, na_filter, verbose, skip_blank_lines, parse_dates, infer_datetime_format, keep_date_col, date_parser, dayfirst, iterator, chunksize, compression, thousands, decimal, lineterminator, quotechar, quoting, escapechar, comment, encoding, dialect, tupleize_cols, error_bad_lines, warn_bad_lines, skipfooter, skip_footer, doublequote, delim_whitespace, as_recarray, compact_ints, use_unsigned, low_memory, buffer_lines, memory_map, float_precision)
-        707                     skip_blank_lines=skip_blank_lines)
-        708 
-    --> 709         return _read(filepath_or_buffer, kwds)
-        710 
-        711     parser_f.__name__ = name
-
-
-    /anaconda3/lib/python3.6/site-packages/pandas/io/parsers.py in _read(filepath_or_buffer, kwds)
-        447 
-        448     # Create the parser.
-    --> 449     parser = TextFileReader(filepath_or_buffer, **kwds)
-        450 
-        451     if chunksize or iterator:
-
-
-    /anaconda3/lib/python3.6/site-packages/pandas/io/parsers.py in __init__(self, f, engine, **kwds)
-        816             self.options['has_index_names'] = kwds['has_index_names']
-        817 
-    --> 818         self._make_engine(self.engine)
-        819 
-        820     def close(self):
-
-
-    /anaconda3/lib/python3.6/site-packages/pandas/io/parsers.py in _make_engine(self, engine)
-       1047     def _make_engine(self, engine='c'):
-       1048         if engine == 'c':
-    -> 1049             self._engine = CParserWrapper(self.f, **self.options)
-       1050         else:
-       1051             if engine == 'python':
-
-
-    /anaconda3/lib/python3.6/site-packages/pandas/io/parsers.py in __init__(self, src, **kwds)
-       1693         kwds['allow_leading_cols'] = self.index_col is not False
-       1694 
-    -> 1695         self._reader = parsers.TextReader(src, **kwds)
-       1696 
-       1697         # XXX
-
-
-    pandas/_libs/parsers.pyx in pandas._libs.parsers.TextReader.__cinit__()
-
-
-    pandas/_libs/parsers.pyx in pandas._libs.parsers.TextReader._setup_parser_source()
-
-
-    FileNotFoundError: File b'job_skills.csv' does not exist
 
 
 ### OTHER SKILLS
