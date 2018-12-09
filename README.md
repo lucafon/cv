@@ -39,10 +39,9 @@ display(HTML("""
 
 
 ```python
-personal_info = {'Contact': ['Phone Number', 'e-mail', 'Skype Id', 
+personal_info = {'Contact': ['e-mail', 'Skype Id', 
                              'Sex', 'Date of Birth', 'Nationality'],
-                 'Detail': ['+39 340 5434453', 
-                            'luca.fontanili93@gmail.com', 'luca.fontanili', 'Male', '22/01/1990', 'Italian']}
+                 'Detail': ['luca.fontanili93@gmail.com', 'luca.fontanili', 'Male', '22/01/1990', 'Italian']}
 
 display(HTML("""<center><table><tr><td><img src="profile.jpg" width=200/>{}</td>
                 <td><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2831.1517727885257!2d10.327056116089658!3d44.798095479098734!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47806ae0cec03315%3A0x63674c9ddee412c0!2sBorgo+Riccio+da+Parma%2C+34%2C+43121+Parma+PR!5e0!3m2!1sen!2sit!4v1544393049528" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
@@ -58,10 +57,6 @@ display(HTML("""<center><table><tr><td><img src="profile.jpg" width=200/>{}</td>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>Phone Number</td>
-      <td>+39 340 5434453</td>
-    </tr>
     <tr>
       <td>e-mail</td>
       <td>luca.fontanili93@gmail.com</td>
