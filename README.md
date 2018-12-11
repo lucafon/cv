@@ -5,6 +5,7 @@
 
 ```python
 import pandas as pd
+pd.set_option('max_colwidth', 1000)
 from IPython.core.display import display, HTML
 import matplotlib.pyplot as plt
 import numpy as np
@@ -39,48 +40,49 @@ display(HTML("""
 
 
 ```python
-personal_info = {'Contact': ['e-mail', 'Skype Id', 
-                             'Sex', 'Date of Birth', 'Nationality'],
-                 'Detail': ['luca.fontanili93@gmail.com', 'luca.fontanili', 'Male', '22/01/1990', 'Italian']}
+def load_map_frame():
+    with open('map_frame.html') as f:
+        return f.read()
 
-display(HTML("""<center><table><tr><td><img src="profile.jpg" width=200/>{}</td>
-                <td><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2831.1517727885257!2d10.327056116089658!3d44.798095479098734!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47806ae0cec03315%3A0x63674c9ddee412c0!2sBorgo+Riccio+da+Parma%2C+34%2C+43121+Parma+PR!5e0!3m2!1sen!2sit!4v1544393049528" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
-                </td></table></center>""".format(pd.DataFrame(personal_info).to_html(escape=False, index=False))))
+import sqlite3
+conn = sqlite3.connect('cv.db')
+lf = pd.read_sql_query('SELECT * FROM users WHERE id="luca fontanili"', conn)
+lf = lf.set_index('id')
+display(HTML('<center><table><tr><td><img src="profile.jpg" width=200/>{}</td><td>{}</td></table></center>'
+             .format(lf.T.to_html(escape=False), load_map_frame())))
 ```
 
 
 <center><table><tr><td><img src="profile.jpg" width=200/><table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
-      <th>Contact</th>
-      <th>Detail</th>
+      <th>id</th>
+      <th>luca fontanili</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>e-mail</td>
+      <th>email</th>
       <td>luca.fontanili93@gmail.com</td>
     </tr>
     <tr>
-      <td>Skype Id</td>
+      <th>skype</th>
       <td>luca.fontanili</td>
     </tr>
     <tr>
-      <td>Sex</td>
+      <th>sex</th>
       <td>Male</td>
     </tr>
     <tr>
-      <td>Date of Birth</td>
+      <th>birthdate</th>
       <td>22/01/1990</td>
     </tr>
     <tr>
-      <td>Nationality</td>
+      <th>nationality</th>
       <td>Italian</td>
     </tr>
   </tbody>
-</table></td>
-                <td><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2831.1517727885257!2d10.327056116089658!3d44.798095479098734!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47806ae0cec03315%3A0x63674c9ddee412c0!2sBorgo+Riccio+da+Parma%2C+34%2C+43121+Parma+PR!5e0!3m2!1sen!2sit!4v1544393049528" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
-                </td></table></center>
+</table></td><td><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2831.1517727885257!2d10.327056116089658!3d44.798095479098734!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47806ae0cec03315%3A0x63674c9ddee412c0!2sBorgo+Riccio+da+Parma%2C+34%2C+43121+Parma+PR!5e0!3m2!1sen!2sit!4v1544393049528" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe></td></table></center>
 
 
 [![GitHub](https://img.shields.io/badge/GitHub-lucafon-blue.svg)](https://github.com/lucafon)
@@ -92,35 +94,118 @@ display(HTML("""<center><table><tr><td><img src="profile.jpg" width=200/>{}</td>
 _______________
 ## WORK EXPERIENCE
 
+
+
+```python
+def plot_working_experience(employee=None, size=700):
+    if employee is None:
+        raise Exception('Do you work on your own?')
+    from bokeh.plotting import figure, output_notebook, show
+    from bokeh.models import ColumnDataSource, LabelSet
+
+    output_notebook()
+
+    work_experiences = pd.read_sql_query('SELECT * FROM work_experiences where employee="{}"'.format(employee), conn)
+
+    keywords = work_experiences.keyword
+    randoms = np.random.random_sample((len(keywords),))
+    source = ColumnDataSource(data=dict(
+        x=np.random.random_sample((len(keywords),))*2,
+        y=np.random.random_sample((len(keywords),)),
+        keywords=keywords,
+        descriptions=work_experiences.description
+
+    ))
+
+    TOOLTIPS = """
+        <div style="width:300px">
+            <span style="font-size: 17px;"><b>@keywords</b></span>
+            <span style="font-size: 15px;">@descriptions</span>
+        </div>
+    """
+
+    p = figure(plot_width=size, plot_height=size, tooltips=TOOLTIPS, toolbar_location=None)
+    p.y_range.start = -0.1
+    p.y_range.end = 1.1
+    p.x_range.start = -0.2
+    p.x_range.end = 2.2
+
+    p.circle('x', 'y', size=15, source=source, color="#480968")
+
+    labels = LabelSet(x="x", y="y", text="keywords", y_offset=-30, text_font_size="10pt", text_color="#555555",
+                      source=source, text_align='center')
+    p.add_layout(labels)
+
+    show(p)
+```
+
 ### March 2015 - Present, Computer Engineer – Software Development Leader
 <img src="https://www.sia.eu/sites/all/themes/sia/logo.png" width=50 align="right">
 #### Ubiq S.R.L. - SIA Group, Parma/Milan
-
-* Software Development Leader, coordinator of the Back-End development team (5+ developers)
-* Development of Back-End system of different mobile applications in association with Poste Italiane (Extra Sconti, 100K+ active users per month), CartaSi (CashLessCity), Nivea (ConTATTO NIVEA), Barilla (Mio Mulino) and Samsung
-* Business Logic Manager of the project iCoop, in collaboration with Coop Italia. Manager of the Back-End development of the new couponing system within the iCoop mobile app
-* R&D Big Data: Development of the Back-End system and REST Web Services of Ti Frutta, an iOS and Android mobile app, using Data Mining and Machine Learning techniques on Cloud platform. Development of advanced and optimized algorithms to detect products on images of receipts using NoSQL databases (Solr, HBase) and OCR algorithms to read text from pictures using advanced image pre-processing techniques
-* R&D Machine Learning: Study and development of a predictive model that finds similarities between texts of different images using Text Mining and ML techniques 
-* R&D Computer Vision: Development of a server-side binarization algorithm of raw receipt images using different image processing approaches (edge-detection, features extraction, thresholding) using OpenCV in Python
-* R&D Big Data: development of a reliable tool to import data from RDBMS to Hadoop ecosystem using Sqoop, Spark, Hive and Impala
-* R&D Big Data: development of a data replication flow between different Solr instances using Flume and Python
-* 3+ years’ experience on Java 8, lambdas and Design Patterns
-* Hands-on experience with Front-End solutions development using Extjs and HTML. Knowledge of web development tools such as Firebug
-* Experience with JMS and Apache ActiveMQ message broker
-* Development of software solutions following agile practices (Kanban) and using versioning control systems such as SVN and Git
-* Experience with TDD development using Junit framework for unit testing both in Java and Python
-* Hands-on experience with WordPress plug-ins development using JavaScript and PHP
-* Hands-on experience with different Hadoop clusters (Cloudera and Ambari)
-
 **Business or sector** Computer Engineering, Big Data, Machine Learning
+
+
+```python
+plot_working_experience('Ubiq')
+```
+
+
+
+    <div class="bk-root">
+        <a href="https://bokeh.pydata.org" target="_blank" class="bk-logo bk-logo-small bk-logo-notebook"></a>
+        <span id="43203">Loading BokehJS ...</span>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="bk-root" id="1b73c399-5a1c-4875-8c6e-beb9ee98cd53"></div>
+
+
+
+
+
 _________________
 ### August 2014 - February 2015, Software Engineering Intern
 <img src="https://www.datalogic.com/images/logo.png" width=90 align="right">
 #### Datalogic ADC Inc, 55 W Del Mar Blvd, Pasadena (CA)
-* R&D Computer Vision: working on the parallelization of a Computer Vision algorithm (Zero Mean Normalized Cross-Correlation), using the NVIDIA CUDA framework on a GPU embedded in a SoC (Tegra K1)
-* Development of testing programs for Computer Vision software solutions using Python 
 
 **Business or sector** Computer Vision
+
+
+```python
+plot_working_experience('Datalogic', 500)
+```
+
+
+
+    <div class="bk-root">
+        <a href="https://bokeh.pydata.org" target="_blank" class="bk-logo bk-logo-small bk-logo-notebook"></a>
+        <span id="49307">Loading BokehJS ...</span>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="bk-root" id="79f82ace-248d-4989-8d3a-506e77210367"></div>
+
+
+
+
 
 __________________
 ## EDUCATION AND TRAINING
@@ -165,50 +250,61 @@ Excellent social/organisational skills acquired during my experience as Team Lea
 ### JOB-RELATED SKILLS
 
 
-
 ```python
-from bokeh.io import show, output_notebook
-from bokeh.plotting import figure
-from bokeh.palettes import RdPu9
-from bokeh.transform import factor_cmap
-from bokeh.models import HoverTool, ColumnDataSource
-output_notebook()
+def show_skills_plot(x_label, skills=None):
+    if skills is None:
+        raise Exception("you should have at least one skill, shouldn't you?")
+    from bokeh.io import show, output_notebook
+    from bokeh.plotting import figure
+    from bokeh.palettes import RdPu9
+    from bokeh.transform import factor_cmap
+    from bokeh.models import HoverTool, ColumnDataSource
+    output_notebook()
+
+    
+    source = ColumnDataSource(skills)
+
+    p = figure(plot_width=800, plot_height=400, title="Experise level",
+               x_range=list(skills.description), toolbar_location=None)
+
+    index_cmap = factor_cmap('type', palette=RdPu9, factors=sorted(skills.type.unique()), end=1) 
+    p.vbar(x='description', top='level', width=1, source=source,
+           line_color="white", fill_color=index_cmap)
+
+    p.y_range.start = 0
+    p.y_range.end = 10
+    p.x_range.range_padding = 0.1
+    p.xgrid.grid_line_color = None
+    p.xaxis.axis_label = x_label
+    p.xaxis.major_label_orientation = 1.2
+    p.outline_line_color = None
+
+    hover = HoverTool()
+    hover.tooltips = [
+        ('Name', '@description'),
+        ('Type', '@type'),
+        ("Details", "@tooltip")
+    ]
+    p.tools.append(hover)
+
+
+    show(p)
 
 job_skills = pd.read_csv('job_skills.csv', sep=';')
-source = ColumnDataSource(job_skills)
+```
 
-p = figure(plot_width=800, plot_height=400, title="Experise level per skill",
-           x_range=list(job_skills.description), toolbar_location=None)
-
-index_cmap = factor_cmap('type', palette=RdPu9, factors=sorted(job_skills.type.unique()), end=1) 
-p.vbar(x='description', top='level', width=1, source=source,
-       line_color="white", fill_color=index_cmap)
-
-p.y_range.start = 0
-p.y_range.end = 10
-p.x_range.range_padding = 0.1
-p.xgrid.grid_line_color = None
-p.xaxis.axis_label = "Skills grouped by type"
-p.xaxis.major_label_orientation = 1.2
-p.outline_line_color = None
-
-hover = HoverTool()
-hover.tooltips = [
-    ('Name', '@description'),
-    ('Type', '@type'),
-    ("Details", "@tooltip")
-]
-p.tools.append(hover)
+**Programming Languages**
 
 
-show(p)
+```python
+show_skills_plot('Programming Languages', job_skills[job_skills.type == 'Programming Language'])
 ```
 
 
 
     <div class="bk-root">
         <a href="https://bokeh.pydata.org" target="_blank" class="bk-logo bk-logo-small bk-logo-notebook"></a>
-        <span id="938958ea-868b-4a47-9098-411dd527a9a7">Loading BokehJS ...</span>
+        <span id="3356">Loading BokehJS ...</span>
     </div>
 
 
@@ -216,9 +312,43 @@ show(p)
 
 
 
-<div class="bk-root">
-    <div class="bk-plotdiv" id="7f774ce8-a1a4-405f-9cf3-be055ca76cbf"></div>
-</div>
+
+
+
+
+
+  <div class="bk-root" id="19d7299b-2ada-4368-84d0-4a707c5b2d20"></div>
+
+
+
+
+
+**Other job-related skills**
+
+
+```python
+show_skills_plot('Skills grouped by type', job_skills[job_skills.type != 'Programming Language'])
+```
+
+
+
+    <div class="bk-root">
+        <a href="https://bokeh.pydata.org" target="_blank" class="bk-logo bk-logo-small bk-logo-notebook"></a>
+        <span id="2938">Loading BokehJS ...</span>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="bk-root" id="828f7d01-4e2e-4f41-9768-cb1be1fdcbcb"></div>
+
 
 
 
@@ -260,21 +390,156 @@ Bronze medal of sporting merit given by CONI
 * Member & Speaker of the Data Science & AI Group in Parma
 
 ______________
-## MY DAY
-Below an explosion of how a typical workday is composed
+## LATEST STUDIES
 
 
 ```python
-labels = 'Sleep', 'Work', 'Gym', 'Study', 'Other'
-sizes = [6.5, 9, 1.5, 2, 5]
-colors = ['gold', 'yellowgreen', 'lightcoral', 'lightskyblue', 'lightgray'] 
-explode = (0, 0.1, 0, 0, 0)
-plt.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
- 
-plt.axis('equal')
-plt.show()
+pd.read_sql_query('SELECT * FROM books order by status desc, author asc', conn)
 ```
 
 
-![png](output_11_0.png)
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>title</th>
+      <th>author</th>
+      <th>status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Mastering Java Machine Learining</td>
+      <td>Kamath, Uday</td>
+      <td>reading</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>The Art of Computer Programming, Fundamental Algorithms</td>
+      <td>Knuth, Donald</td>
+      <td>reading</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Test-Driven Development</td>
+      <td>Beck, Kent</td>
+      <td>read</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Effective Java</td>
+      <td>Bloch, Josua</td>
+      <td>read</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Design Patterns</td>
+      <td>Gamma, Helm, Johnson, Vlissides</td>
+      <td>read</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>97 Things Every Programmer Should Know</td>
+      <td>Henney, Kevlin</td>
+      <td>read</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>Clean Code</td>
+      <td>Martin, Robert C.</td>
+      <td>read</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>The Clean Coder</td>
+      <td>Martin, Robert C.</td>
+      <td>read</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+______________
+## MY DAY
+
+
+```python
+from math import pi
+
+import pandas as pd
+
+from bokeh.io import output_notebook, show
+from bokeh.palettes import Category20
+from bokeh.plotting import figure
+from bokeh.transform import cumsum
+
+output_notebook()
+
+x = {
+    'Sleep': 6.5/24,
+    'Work': 9/24,
+    'Gym': 1.5/24,
+    'Study': 2/24,
+    'Other': 5/24
+}
+
+data = pd.Series(x).reset_index(name='value').rename(columns={'index':'country'})
+data['angle'] = data['value']/data['value'].sum() * 2*pi
+data['color'] = Category20[len(x)]
+
+p = figure(plot_height=350, title="Pie Chart", toolbar_location=None,
+           tools="hover", tooltips="@country: @value%", x_range=(-0.5, 1.0))
+
+p.wedge(x=0, y=1, radius=0.4,
+        start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+        line_color="white", fill_color='color', legend='country', source=data)
+
+p.axis.axis_label=None
+p.axis.visible=False
+p.grid.grid_line_color = None
+
+show(p)
+
+```
+
+
+
+    <div class="bk-root">
+        <a href="https://bokeh.pydata.org" target="_blank" class="bk-logo bk-logo-small bk-logo-notebook"></a>
+        <span id="2090">Loading BokehJS ...</span>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="bk-root" id="20b2e138-7099-4e07-8004-293183f4b477"></div>
+
+
+
 
